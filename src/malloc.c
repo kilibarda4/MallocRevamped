@@ -92,11 +92,38 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
 // \TODO Put your Best Fit code in this #ifdef block
 #if defined BEST && BEST == 0
    /** \TODO Implement best fit here */
+   intmax_t remainder = INTMAX_MAX;
+   struct _block *winner = NULL;
+   while(curr)
+   {
+      if(curr->free && curr->size >= size && (intmax_t)(curr->size - size) < remainder)
+      {
+         remainder = (intmax_t)(curr->size - size);
+         winner = curr;
+      }
+      curr = curr->next;
+   }
+   curr = winner;
 #endif
 
 // \TODO Put your Worst Fit code in this #ifdef block
 #if defined WORST && WORST == 0
    /** \TODO Implement worst fit here */
+   //winner has most leftover space
+   //block pointer winner points to current winner, initialize it to NULL
+   //traverse the whole list to find winner
+   long int remainder = INT64_MIN;
+   struct _block *winner = NULL;
+   while(curr)
+   {
+      if(curr->free && curr->size >= size && (long int)(curr->size - size) > remainder)
+      {
+         remainder = (long int)(curr->size - size);
+         winner = curr;
+      }
+      curr = curr->next;
+   }
+   curr = winner;
 #endif
 
 // \TODO Put your Next Fit code in this #ifdef block

@@ -92,15 +92,17 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
 // \TODO Put your Best Fit code in this #ifdef block
 #if defined BEST && BEST == 0
    /** \TODO Implement best fit here */
-   intmax_t remainder = INTMAX_MAX;
+   long int remainder = INT64_MAX;
    struct _block *winner = NULL;
    while(curr)
    {
-      if(curr->free && curr->size >= size && (intmax_t)(curr->size - size) < remainder)
+      if(curr->free && curr->size >= size && (long int)(curr->size - size) < remainder)
       {
          remainder = (intmax_t)(curr->size - size);
+         // *last->next = curr;
          winner = curr;
       }
+      *last = curr;
       curr = curr->next;
    }
    curr = winner;
@@ -121,6 +123,7 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
          remainder = (long int)(curr->size - size);
          winner = curr;
       }
+      *last = curr;
       curr = curr->next;
    }
    curr = winner;
@@ -129,6 +132,7 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
 // \TODO Put your Next Fit code in this #ifdef block
 #if defined NEXT && NEXT == 0
    /** \TODO Implement next fit here */
+   
 #endif
 
    return curr;
@@ -224,6 +228,28 @@ void *malloc(size_t size)
             don't split the block.
    */
 
+   if( next && (long int)(next->size - size) > (sizeof(struct _block) + 4) )
+   {
+   //declare a newBlock and temporarily point it to the next from findFreeBlock
+   //set it's next pointer to next's next pointer to preserve the end of the original block
+   //set its size to next's size minus the requested size and block size
+   struct _block* newBlock = next;
+   newBlock->next = next->next;
+   newBlock->size = next->size - size - sizeof(struct _block);
+
+   //set the found block's size to requested size + the block size
+   //set it's next pointer to point to the address size+block bytes from where it starts
+   //set it to inuse
+   next->size = size + sizeof(struct _block);
+   next->next = (struct _block*)((char*)next + size + sizeof(struct _block));
+   next->free = false;
+
+   //change newBlock's starting point to where next->next is now pointing
+   //set it as free to use on next request
+   newBlock = next->next;
+   newBlock->free = true;
+   }
+
    /* Could not find free _block, so grow heap */
    if (next == NULL) 
    {
@@ -268,6 +294,11 @@ void free(void *ptr)
    /* TODO: Coalesce free _blocks.  If the next block or previous block 
             are free then combine them with this block being freed.
    */
+  if(curr->next && curr->next->free)
+  {
+      curr->size = curr->size + curr->next->size;
+      curr->next = curr->next->next;
+  }
 }
 
 void *calloc( size_t nmemb, size_t size )

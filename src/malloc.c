@@ -313,6 +313,7 @@ void free(void *ptr)
       coalEsced->size += coalEsced->next->size + sizeof(struct _block);
       coalEsced->next = coalEsced->next->next;
       num_coalesces++;
+      num_blocks--;
    }
    coalEsced = coalEsced->next;
   }

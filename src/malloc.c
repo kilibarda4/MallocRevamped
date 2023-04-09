@@ -55,7 +55,7 @@ struct _block
 
 
 struct _block *heapList = NULL; /* Free list to track the _blocks available */
-
+struct _block *nextFit = NULL;
 /*
  * \brief findFreeBlock
  *
@@ -89,9 +89,12 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
    }
 #endif
 
-// \TODO Put your Best Fit code in this #ifdef block
 #if defined BEST && BEST == 0
-   /** \TODO Implement best fit here */
+   //While the list pointer is valid:
+   //check if the block is free, if it has enough space for the request,
+   //and how much space is left over if it gets used.
+   //after iterating through the list, pick the block with least amount
+   //of leftover space
    long int remainder = INT64_MAX;
    struct _block *winner = NULL;
    while(curr)
@@ -103,17 +106,17 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
          winner = curr;
       }
       *last = curr;
-      curr = curr->next;
+      curr  = curr->next;
    }
    curr = winner;
 #endif
 
-// \TODO Put your Worst Fit code in this #ifdef block
 #if defined WORST && WORST == 0
-   /** \TODO Implement worst fit here */
-   //winner has most leftover space
-   //block pointer winner points to current winner, initialize it to NULL
-   //traverse the whole list to find winner
+   //While the list pointer is valid:
+   //check if the block is free if it has enough space for the request,
+   //and how much space is left over if it gets used.
+   //after iterating through the list, pick the block with the most
+   //leftover space
    long int remainder = INT64_MIN;
    struct _block *winner = NULL;
    while(curr)
@@ -124,23 +127,46 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
          winner = curr;
       }
       *last = curr;
-      curr = curr->next;
+      curr  = curr->next;
    }
    curr = winner;
 #endif
 
 // \TODO Put your Next Fit code in this #ifdef block
 #if defined NEXT && NEXT == 0
-   /** \TODO Implement next fit here */
-   //global variable??
-   //handle null
-   //keep a ptr to the last used block
-   //start from that point towards the end
-   //do best fit from the point specified to the end
-   //wrap around??
+
+   //if both exist, make curr = nextFit
+   if(curr && nextFit)
+   {
+      curr = nextFit;
+   }
+
+   //perform first fit
+   while (curr && !(curr->free && curr->size >= size)) 
+   {
+      *last = curr;
+      curr  = curr->next;
+   }
+
+   //if we reach the end of the list and found no block
+   //curr will be NULL but nextFit will not be NULL, so wrap around
+   //loop until we reach nextFit. If still no block found, set curr to NULL
+   if(!curr && nextFit)
+   {
+      curr = heapList;
+      while(curr != nextFit && !(curr->free && curr->size >= size))
+      {
+         *last = curr;
+         curr = curr->next;
+      }
+      if(curr == nextFit)
+      {
+         curr = NULL;
+      }
+   }
    
 #endif
-
+   nextFit = curr;
    return curr;
 }
 

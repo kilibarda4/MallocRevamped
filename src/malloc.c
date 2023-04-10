@@ -13,11 +13,11 @@
 static int atexit_registered = 0;
 static int num_mallocs       = 0;
 static int num_frees         = 0;
-static int num_reuses        = 0;
+static int num_reuses        = 0; //anytime ffblock doesnt return null
 static int num_grows         = 0;
 static int num_splits        = 0;
 static int num_coalesces     = 0;
-static int num_blocks        = 0;
+static int num_blocks        = 0; //only calculate at the end
 static int num_requested     = 0;
 static int max_heap          = 0;
 
@@ -166,6 +166,10 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
    }
    
 #endif
+   if(curr)
+   {
+      num_blocks++;
+   }
    nextFit = curr;
    return curr;
 }
@@ -213,10 +217,14 @@ struct _block *growHeap(struct _block *last, size_t size)
       Set its next pointer to NULL since it's now the tail of the linked list.
    */
    num_grows++;
-   num_blocks++;
+   if(curr)
+   {
+      num_blocks++;
+   }
    curr->size = size;
    curr->next = NULL;
    curr->free = false;
+   // nextFit = curr;
    return curr;
 }
 
@@ -259,7 +267,10 @@ void *malloc(size_t size)
    {
       next = growHeap(last, size);
    }
-
+   else
+   {
+      num_reuses++;
+   }
    /* Could not find free _block or grow heap, so just return NULL */
    if (next == NULL) 
    {
@@ -301,6 +312,7 @@ void *malloc(size_t size)
    next->free = false;
    num_mallocs++;
    /* Return data address associated with _block to the user */
+   // nextFit = next;
    return BLOCK_DATA(next);
 }
 

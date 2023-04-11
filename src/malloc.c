@@ -277,13 +277,7 @@ void *malloc(size_t size)
       return NULL;
    }
 
-   
-   /* TODO: If the block found by findFreeBlock is larger than we need then:
-            If the leftover space in the new block is greater than the sizeof(_block)+4 then
-            split the block.
-            If the leftover space in the new block is less than the sizeof(_block)+4 then
-            don't split the block.
-   */
+   //block splitting
    if( next && (long int)(next->size - size) > (sizeof(struct _block) + 4) )
    {
    //declare a newBlock and temporarily point it to the next from findFreeBlock

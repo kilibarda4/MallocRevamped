@@ -63,10 +63,6 @@ struct _block *nextFit = NULL;
  * \param size size of the _block needed in bytes 
  *
  * \return a _block that fits the request or NULL if no free _block matches
- *
- * \TODO Implement Next Fit
- * \TODO Implement Best Fit
- * \TODO Implement Worst Fit
  */
 struct _block *findFreeBlock(struct _block **last, size_t size) 
 {
@@ -132,7 +128,6 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
    curr = winner;
 #endif
 
-// \TODO Put your Next Fit code in this #ifdef block
 #if defined NEXT && NEXT == 0
 
    //if both exist, make curr = nextFit
@@ -166,10 +161,10 @@ struct _block *findFreeBlock(struct _block **last, size_t size)
    }
    
 #endif
-   if(curr)
-   {
-      num_blocks++;
-   }
+   // if(curr)
+   // {
+   //    num_blocks++;
+   // }
    nextFit = curr;
    return curr;
 }
@@ -216,15 +211,16 @@ struct _block *growHeap(struct _block *last, size_t size)
       Set the size of the new block and initialize the new block to "free".
       Set its next pointer to NULL since it's now the tail of the linked list.
    */
-   num_grows++;
+
    if(curr)
    {
       num_blocks++;
+      num_grows++;
+      max_heap += size;
    }
    curr->size = size;
    curr->next = NULL;
    curr->free = false;
-   // nextFit = curr;
    return curr;
 }
 
@@ -247,6 +243,8 @@ void *malloc(size_t size)
       atexit_registered = 1;
       atexit( printStatistics );
    }
+
+   //increment the requested size statistic before alignment
    num_requested += size;
    /* Align to multiple of 4 */
    size = ALIGN4(size);
@@ -306,7 +304,6 @@ void *malloc(size_t size)
    next->free = false;
    num_mallocs++;
    /* Return data address associated with _block to the user */
-   // nextFit = next;
    return BLOCK_DATA(next);
 }
 
@@ -334,13 +331,14 @@ void free(void *ptr)
    curr->free = true;
 
 
-   /* TODO: Coalesce free _blocks.  If the next block or previous block 
-            are free then combine them with this block being freed.
-   */
+   //Coalesce consecutive free blocks
   struct _block* coalEsced = heapList;
   while(coalEsced)
   {
-   if(coalEsced->free && coalEsced->next && coalEsced->next->free) //find the previous
+   //Check for consecutive free blocks
+   //If consecutive free blocks are found, add their size and make the pointer
+   //of the former equal to that of the latter
+   if(coalEsced->free && coalEsced->next && coalEsced->next->free)
    {
       coalEsced->size += coalEsced->next->size + sizeof(struct _block);
       coalEsced->next = coalEsced->next->next;

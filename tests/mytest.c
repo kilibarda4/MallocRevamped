@@ -1,28 +1,22 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-int main()
-{
-    char* ptr[4000];
-    for(int i = 0; i < 4000; i++)
-    {
-        ptr[i] = malloc(1);
-    }
-    for(int i = 0; i < 2000; i++)
-    {
-        free(ptr[i]);
-    }
+#define BLOCK_SIZE 128
 
-    char* ptr2 = malloc(20000);
-    char* ptr3 = realloc(ptr2, 25000);
-    free(ptr3);
-
-    char* ptr4 = calloc(5,50);
-    free(ptr4);
-
-    for(int i = 0; i < 2000; i++)
-    {
-        free(ptr[4000-i]);
-    }
+int main() {
+    // Test block splitting functionality
+    void* block = malloc(BLOCK_SIZE);
+    printf("Allocated block at address %p\n", block);
+    free(block);
+    printf("Freed block at address %p\n", block);
+    void* split_block1 = malloc(BLOCK_SIZE / 2);
+    printf("Allocated split block 1 at address %p\n", split_block1);
+    void* split_block2 = malloc(BLOCK_SIZE / 2);
+    printf("Allocated split block 2 at address %p\n", split_block2);
+    free(split_block1);
+    printf("Freed split block 1 at address %p\n", split_block1);
+    free(split_block2);
+    printf("Freed split block 2 at address %p\n", split_block2);
     return 0;
 }
